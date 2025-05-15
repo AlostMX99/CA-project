@@ -25,22 +25,22 @@ void fetchInstruction(int opcode) {
 
 void fetch(int opcode) {
     if (Decoder.type == 0) {
-        Decoder.RD = (Decoder.data >> 23) & 0x0F;
-        Decoder.RS = (Decoder.data >> 18) & 0x0F;
-        Decoder.RT = (Decoder.data >> 13) & 0x0F;
-        Decoder.SHAMT = (Decoder.data >> 12) & 0x0F;
+        Decoder.RD = (Decoder.data >> 23) & 0b1111;
+        Decoder.RS = (Decoder.data >> 18) & 0b1111;
+        Decoder.RT = (Decoder.data >> 13) & 0b1111;
+        Decoder.SHAMT = (Decoder.data >> 12) & 0b1111;
     } else if (Decoder.type == 1) {
-        Decoder.RS = (Decoder.data >> 23) & 0x0F;  // bits 25:21
-        Decoder.RT = (Decoder.data >> 18) & 0x0F;  // bits 20:16
-        Decoder.IMM = Decoder.data & 0x3FFFF;      // bits 17:0 (assumed 18 bits)
+        Decoder.RS = (Decoder.data >> 23) & 0b1111;  // bits 25:21
+        Decoder.RT = (Decoder.data >> 18) & 0b1111;  // bits 20:16
+        Decoder.IMM = Decoder.data & 0b11111111111111111111;      // bits 17:0 (assumed 18 bits)
     } else {
-        Decoder.address = Decoder.data & 0x1FFFFFFF; // bits 28:0
+        Decoder.address = Decoder.data & 0b1111111111111111111111111111; // bits 28:0
     }
 }
 
 void Decode(int x) {
     Decoder.data = x;
-    Decoder.opcode = (Decoder.data >> 28) & 0x0F;
+    Decoder.opcode = (Decoder.data >> 28) & 0b00000000000000000000000000001111;
     fetchInstruction(Decoder.opcode);
     fetch(Decoder.opcode);
 }
