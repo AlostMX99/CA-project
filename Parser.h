@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include "Memory.h"
+#include <string.h>  // for strcpy
+#include <stdlib.h>  // for atoi
 
 // Pipeline stage indices
 #define IF  0

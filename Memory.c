@@ -1,7 +1,7 @@
 // Refactored memory.c for clean and safe operation
 #include <string.h>
 #include <stdio.h>
-#include "memory.h"
+#include "Memory.h"
 
 int UseIndex = 1024; // Data memory starts at 1024
 struct Slot memory[2048];

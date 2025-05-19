@@ -4,6 +4,8 @@
 #include "registers.h"
 #include "Memory.h"
 #include "Parser.h"
+#include <string.h>  // for strcpy
+#include <stdlib.h>  // for atoi
 
 #define IF 0
 #define ID 1
@@ -18,7 +20,8 @@
 #define OPCODE_BNE 10
 #define OPCODE_J 11
 
-extern registerHome myRegisters;  // Declared in registers.h
+// Remove extern registerHome myRegisters; - NO LONGER USED
+
 extern int parseFile(const char* filename);  // Declaration to prevent implicit warning
 
 int flush_timer = 0;
@@ -54,11 +57,11 @@ void decode() {
         if (prevOpcode != OPCODE_BNE && prevOpcode != OPCODE_J && prevOpcode != OPCODE_SW) {
             if (pipeline[ID].R1 == prevDest) {
                 printf("Forwarding: R1 = R%d using ALU result %d from EX stage\n", prevDest, pipeline[EX].result);
-                myRegisters.regHome[pipeline[ID].R1].data = pipeline[EX].result;
+                overwriteData(getRegister(pipeline[ID].R1), pipeline[EX].result);
             }
             if (pipeline[ID].R2 == prevDest) {
                 printf("Forwarding: R2 = R%d using ALU result %d from EX stage\n", prevDest, pipeline[EX].result);
-                myRegisters.regHome[pipeline[ID].R2].data = pipeline[EX].result;
+                overwriteData(getRegister(pipeline[ID].R2), pipeline[EX].result);
             }
         }
     }
@@ -89,20 +92,20 @@ void execute() {
 
     switch (op) {
         case OPCODE_ADD:
-            pipeline[EX].result = getData(&myRegisters.regHome[pipeline[EX].R2]) +
-                                  getData(&myRegisters.regHome[pipeline[EX].R3]);
+            pipeline[EX].result = getData(getRegister(pipeline[EX].R2)) +
+                                  getData(getRegister(pipeline[EX].R3));
             break;
         case OPCODE_ADDI:
-            pipeline[EX].result = getData(&myRegisters.regHome[pipeline[EX].R2]) + pipeline[EX].immediate;
+            pipeline[EX].result = getData(getRegister(pipeline[EX].R2)) + pipeline[EX].immediate;
             break;
         case OPCODE_LW:
         case OPCODE_SW:
-            pipeline[EX].mem_address = getData(&myRegisters.regHome[pipeline[EX].R2]) + pipeline[EX].immediate;
-            pipeline[EX].mem_data = getData(&myRegisters.regHome[pipeline[EX].R1]);
+            pipeline[EX].mem_address = getData(getRegister(pipeline[EX].R2)) + pipeline[EX].immediate;
+            pipeline[EX].mem_data = getData(getRegister(pipeline[EX].R1));
             break;
         case OPCODE_BNE: {
-            int a = getData(&myRegisters.regHome[pipeline[EX].R1]);
-            int b = getData(&myRegisters.regHome[pipeline[EX].R2]);
+            int a = getData(getRegister(pipeline[EX].R1));
+            int b = getData(getRegister(pipeline[EX].R2));
             if (a != b) {
                 int new_pc = getPC()->data + pipeline[EX].immediate;
                 overwriteData(getPC(), new_pc);
@@ -142,9 +145,9 @@ void writeback() {
     if (!pipeline[WB].valid) return;
     int dest = pipeline[WB].R1;
     if ((pipeline[WB].opcode == OPCODE_ADD || pipeline[WB].opcode == OPCODE_ADDI || pipeline[WB].opcode == OPCODE_LW) && dest != 0) {
-        overwriteData(&myRegisters.regHome[dest], pipeline[WB].result);
+        overwriteData(getRegister(dest), pipeline[WB].result);
         printf("[WRITEBACK] Register %s updated to %d\n",
-               getType(&myRegisters.regHome[dest]), getData(&myRegisters.regHome[dest]));
+               getType(getRegister(dest)), getData(getRegister(dest)));
     }
 }
 
@@ -200,7 +203,7 @@ void print_pipeline_state() {
 void print_final_state() {
     printf("\n===== FINAL REGISTER STATE =====\n");
     for (int i = 0; i < 33; i++) {
-        printf("%s = %d\n", getType(&myRegisters.regHome[i]), getData(&myRegisters.regHome[i]));
+        printf("%s = %d\n", getType(getRegister(i)), getData(getRegister(i)));
     }
 
     printf("\n===== FINAL MEMORY CONTENT =====\n");
@@ -239,6 +242,9 @@ int main() {
         printf("Error parsing file\n");
         return 1;
     }
+
+    initRegisters();  // <-- Important! Initialize the registers before simulation
+
     simulate();
     return 0;
 }

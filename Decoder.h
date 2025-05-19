@@ -1,20 +1,26 @@
 #ifndef DECODER_H
 #define DECODER_H
 
-#include "ALU.h"
+#include <stdint.h>
 
-struct Decoder {
-    int type;    // 0 = R, 1 = I, 2 = J
-    int data;
-    int opcode;
-    int RD;
-    int RS;
-    int RT;
-    int SHAMT;
-    int IMM;
-    int address;
-};
-extern struct Decoder decoder;
-void Decode(int x);
+typedef struct {
+    uint32_t data;
+    uint8_t opcode;
+    uint8_t type;
+    uint8_t RD;
+    uint8_t RS;
+    uint8_t RT;
+    uint8_t SHAMT;
+    int32_t IMM;       // signed immediate
+    uint32_t address;
+} Decoder;
 
-#endif
+// Global decoder instance (declare extern here, define in one .c file)
+extern Decoder decoder;
+
+// Function prototypes
+void fetchInstruction(int opcode);
+void fetch(int opcode);
+void Decode(int instruction);
+
+#endif // DECODER_H

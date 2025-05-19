@@ -1,5 +1,7 @@
 #include "Parser.h"
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 
 static int instructionCount = 0;

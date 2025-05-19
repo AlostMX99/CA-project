@@ -1,50 +1,39 @@
 #ifndef REGISTERS_H
 #define REGISTERS_H
+#include <string.h>  // for strcpy
+#include <stdlib.h>  // for atoi
 
-#include <stdio.h>
-#include <stdlib.h>
-
-// Define reg structure representing a single register with type and data.
 typedef struct {
-    const char* type;
+    char* type;
     int data;
 } reg;
 
-// Define registerHome holding an array of 33 registers.
-typedef struct {
-    reg regHome[33];
-} registerHome;
+// Initialize the registers (must call before using)
+void initRegisters(void);
 
-// Global registerHome instance declared elsewhere
-extern registerHome myRegisters;
-
-// Functions to manipulate registers
-
-// Returns pointer to register at given index (0-32)
+// Get a pointer to a register by index (0 to 32)
 reg* getRegister(int index);
 
-// Creates a new register with given data and type (returns pointer)
-reg* createRegister(int data, const char* type);
-
-// Returns data from given register
-int getData(const reg* r);
-
-// Returns type string from given register
-const char* getType(const reg* r);
-
-// Overwrites the data of given register
-void overwriteData(reg* r, int data);
-
-// Overwrites the type string of given register
-void overwriteType(reg* r, const char* type);
-
-// Initializes the register home (all registers)
-void initRegisterHome(registerHome* home);
-
-// Returns pointer to the Program Counter register (assumed at some fixed index)
+// Get a pointer to the PC register (index 32)
 reg* getPC(void);
 
-// Increments the Program Counter register by 1
+// Increment the PC register by 1
 void incrementPC(void);
 
+// Create a new register (dynamically allocated)
+reg* createRegister(int data, const char* type);
+
+// Get register data
+int getData(reg* r);
+
+// Get register type string
+const char* getType(reg* r);
+
+// Overwrite register data (can't overwrite zero register)
+void overwriteData(reg* r, int data);
+
+// Overwrite register type (can't overwrite zero register)
+void overwriteType(reg* r, const char* type);
+reg* createRegister(int data, const char* type);
+void overwriteType(reg* r, const char* type);
 #endif // REGISTERS_H

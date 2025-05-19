@@ -1,6 +1,8 @@
 // pipeline.h
 #ifndef PIPELINE_H
 #define PIPELINE_H
+#include <string.h>  // for strcpy
+#include <stdlib.h>  // for atoi
 
 #include <stdint.h>
 

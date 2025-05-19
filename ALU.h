@@ -2,7 +2,7 @@
 
 #ifndef ALU_H
 #define ALU_H
-
+#include "Memory.h"
 #include <stdint.h>
 
 extern struct Slot memory[2048];
