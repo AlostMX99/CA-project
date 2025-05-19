@@ -45,6 +45,33 @@ void execution(){
             ID.active = 0;
             EX.active = 1;
         }
+        int insertBubble = 0;
+
+        if (ID.active && EX.active) {
+        Decode(EX.instruction); // Decode EX to check if it’s a LW
+        int exRD = decoder.RD;  // destination of LW
+
+        Decode(ID.instruction); // Decode ID to check if it depends
+        int idRS = decoder.RS;
+        int idRT = decoder.RT;
+
+        if (decoder.opcode == 10 &&  // LW in EX
+        (exRD == idRS || exRD == idRT)) {
+        insertBubble = 1;
+        printf("STALL: Load-use hazard detected → inserting bubble\n");
+        }
+    }
+
+
+if (insertBubble) {
+    EX.active = 0;  // bubble (NOP)
+}
+ else
+ {
+    EX = ID;
+}
+
+ID = IF;
 
         if (EX.active && EXTTL == 2) {
             result = ALU();
