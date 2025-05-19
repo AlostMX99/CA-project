@@ -3,6 +3,7 @@
 #include <string.h>
 #include "registers.h"
 #include "memory.h"
+#include "Parser.h"
 
 #define IF 0
 #define ID 1
@@ -17,13 +18,8 @@
 #define OPCODE_BNE 10
 #define OPCODE_J 11
 
-typedef struct {
-    int instruction;
-    int opcode;
-    int R1, R2, R3, shamt, immediate, address;
-    int result, mem_address, mem_data;
-    int valid;
-} PipelineStage;
+extern registerHome myRegisters;  // Assuming this is declared in registers.h
+extern int parseFile(const char* filename);  // Prevent implicit declaration
 
 int flush_timer = 0;
 int clock_cycle = 1;
@@ -125,7 +121,8 @@ void writeback() {
     int dest = pipeline[WB].R1;
     if ((pipeline[WB].opcode == OPCODE_ADD || pipeline[WB].opcode == OPCODE_ADDI || pipeline[WB].opcode == OPCODE_LW) && dest != 0) {
         overwriteData(&myRegisters.regHome[dest], pipeline[WB].result);
-        printf("Register Update: %s = %d (updated in WB stage)\n", getType(&myRegisters.regHome[dest]), getData(&myRegisters.regHome[dest]));
+        printf("Register Update: %s = %d (updated in WB stage)\n",
+               getType(&myRegisters.regHome[dest]), getData(&myRegisters.regHome[dest]));
     }
 }
 

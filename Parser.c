@@ -1,4 +1,6 @@
 #include "Parser.h"
+#include <stdio.h>
+
 
 static int instructionCount = 0;
 
