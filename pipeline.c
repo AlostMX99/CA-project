@@ -130,9 +130,27 @@ void writeback() {
 }
 
 void advance_pipeline() {
+    int insertBubble = 0;
+    if (pipeline[ID].valid && pipeline[EX].valid) {
+        int ex_opcode = pipeline[EX].opcode;
+        int id_r1 = pipeline[ID].R1;
+        int id_r2 = pipeline[ID].R2;
+
+        if (ex_opcode == OPCODE_LW) {
+            int ex_dest = pipeline[EX].R1; // LW writes to R1
+            if (ex_dest == id_r1 || ex_dest == id_r2) {
+                insertBubble = 1;
+                printf("STALL: Load-use hazard detected → inserting bubble\n");
+            }
+        }
+    }
     pipeline[WB] = pipeline[MEM];
     pipeline[MEM] = pipeline[EX];
-    pipeline[EX] = pipeline[ID];
+    if (insertBubble) {
+        memset(&pipeline[EX], 0, sizeof(PipelineStage)); // insert NOP (bubble)
+    } else {
+        pipeline[EX] = pipeline[ID];
+    }
     pipeline[ID] = pipeline[IF];
     memset(&pipeline[IF], 0, sizeof(PipelineStage));
     if (flush_timer > 0) flush_timer--;
