@@ -1,11 +1,8 @@
-// Simulated pipeline for Package 1 (Von Neumann architecture, 5-stage pipeline)
-// Uses provided register and memory structures
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include "registers.h"
 #include "memory.h"
-#include "pipeline.h"
 
 #define IF 0
 #define ID 1
@@ -20,11 +17,6 @@
 #define OPCODE_BNE 10
 #define OPCODE_J 11
 
-int flush_timer = 0;
-int clock_cycle = 1;
-
-PipelineStage pipeline[5];
-
 typedef struct {
     int instruction;
     int opcode;
@@ -32,6 +24,10 @@ typedef struct {
     int result, mem_address, mem_data;
     int valid;
 } PipelineStage;
+
+int flush_timer = 0;
+int clock_cycle = 1;
+PipelineStage pipeline[5] = {0};
 
 int sign_extend(int value, int bits) {
     int mask = 1 << (bits - 1);
@@ -119,7 +115,7 @@ void memory_access() {
             break;
         case OPCODE_SW:
             overwrite(pipeline[MEM].mem_data, addr);
-            printf("MEM[%d] updated to %d in MEM stage\n", addr, pipeline[MEM].mem_data);
+            printf("Memory Update: MEM[%d] = %d (stored in MEM stage)\n", addr, pipeline[MEM].mem_data);
             break;
     }
 }
@@ -129,7 +125,7 @@ void writeback() {
     int dest = pipeline[WB].R1;
     if ((pipeline[WB].opcode == OPCODE_ADD || pipeline[WB].opcode == OPCODE_ADDI || pipeline[WB].opcode == OPCODE_LW) && dest != 0) {
         overwriteData(&myRegisters.regHome[dest], pipeline[WB].result);
-        printf("Register %s updated to %d in WB stage\n", getType(&myRegisters.regHome[dest]), getData(&myRegisters.regHome[dest]));
+        printf("Register Update: %s = %d (updated in WB stage)\n", getType(&myRegisters.regHome[dest]), getData(&myRegisters.regHome[dest]));
     }
 }
 
@@ -138,18 +134,27 @@ void advance_pipeline() {
     pipeline[MEM] = pipeline[EX];
     pipeline[EX] = pipeline[ID];
     pipeline[ID] = pipeline[IF];
-    pipeline[IF].valid = 0;
+    memset(&pipeline[IF], 0, sizeof(PipelineStage));
     if (flush_timer > 0) flush_timer--;
 }
 
 void print_pipeline_state() {
-    printf("===== Clock Cycle %d =====\n", clock_cycle);
+    printf("\n===== Clock Cycle %d =====\n", clock_cycle);
     const char* stage_names[5] = {"IF", "ID", "EX", "MEM", "WB"};
     for (int i = 4; i >= 0; i--) {
         if (!pipeline[i].valid) {
             printf("%s: [EMPTY]\n", stage_names[i]);
         } else {
-            printf("%s: Opcode %d\n", stage_names[i], pipeline[i].opcode);
+            printf("%s: Instr=0x%08X, Opcode=%d, R1=%d, R2=%d, R3=%d, Imm=%d, Addr=%d\n",
+                stage_names[i],
+                pipeline[i].instruction,
+                pipeline[i].opcode,
+                pipeline[i].R1,
+                pipeline[i].R2,
+                pipeline[i].R3,
+                pipeline[i].immediate,
+                pipeline[i].address
+            );
         }
     }
     printf("---------------------------\n");
@@ -189,24 +194,4 @@ void simulate() {
         if (is_pipeline_empty() && getPC()->data >= 1024) break;
     }
     print_final_state();
-}
-
-int main() {
-    CreateMemory();
-    initRegisterHome(&myRegisters);
-
-    // Example: ADDI R1 R0 5
-    int instr1 = (OPCODE_ADDI << 28) | (1 << 23) | (0 << 18) | (5 & 0x3FFFF);
-    overwrite(instr1, 0);
-
-    // ADD R2 R1 R1
-    int instr2 = (OPCODE_ADD << 28) | (2 << 23) | (1 << 18) | (1 << 13);
-    overwrite(instr2, 1);
-
-    // SW R2, R0, 0  (Store R2 into address 0 + 0 = 0)
-    int instr3 = (OPCODE_SW << 28) | (2 << 23) | (0 << 18);
-    overwrite(instr3, 2);
-
-    simulate();
-    return 0;
 }
