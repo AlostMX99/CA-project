@@ -43,6 +43,22 @@ void decode() {
     int instr = pipeline[ID].instruction;
     int opcode = (instr >> 28) & 0xF;
     pipeline[ID].opcode = opcode;
+if (pipeline[EX].valid) {
+    int prevOpcode = pipeline[EX].opcode;
+    int prevDest = pipeline[EX].R1;
+
+    if (prevOpcode != OPCODE_BNE && prevOpcode != OPCODE_J && prevOpcode != OPCODE_SW) {
+        if (pipeline[ID].R1 == prevDest) {
+            printf("Forwarding: R1 = R%d using ALU result %d from EX stage\n", prevDest, pipeline[EX].result);
+            // simulate forward: optionally store into register or temporary variable
+            myRegisters.regHome[pipeline[ID].R1].data = pipeline[EX].result;
+        }
+        if (pipeline[ID].R2 == prevDest) {
+            printf("Forwarding: R2 = R%d using ALU result %d from EX stage\n", prevDest, pipeline[EX].result);
+            myRegisters.regHome[pipeline[ID].R2].data = pipeline[EX].result;
+        }
+    }
+}
 
     switch (opcode) {
         case OPCODE_ADD:
@@ -62,6 +78,7 @@ void decode() {
             pipeline[ID].address = instr & 0x0FFFFFFF;
             break;
     }
+
 }
 
 void execute() {
@@ -209,4 +226,9 @@ void simulate() {
         if (is_pipeline_empty() && getPC()->data >= 1024) break;
     }
     print_final_state();
+}
+int main() {
+    parseFile("Program1.txt");
+    simulate();
+    return 0;
 }
