@@ -24,5 +24,5 @@ void overwriteType(reg* r, char* type);
 void initRegisterHome(registerHome* home);
 reg* getPC(void);
 void incrementPC(void);
-
+reg* getRegister(int index);
 #endif

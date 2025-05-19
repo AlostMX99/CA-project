@@ -49,9 +49,14 @@ void initRegisterHome(registerHome* home) {
 reg* getPC() {
     return &myRegisters.regHome[32];  // Index 32 holds the "pc"
 }
-reg* getRegister(int index){
-    return myRegisters[index];
-}
+
 void incrementPC() {
     myRegisters.regHome[32].data++;
+}
+reg* getRegister(int index) {
+    if (index < 0 || index > 32) {
+        printf("Invalid register index: %d\n", index);
+        exit(1);
+    }
+    return &myRegisters.regHome[index];
 }
