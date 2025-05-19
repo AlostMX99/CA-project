@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "decoder.h"
+#include "ALU.h"
 #include "registers.h"
 #include "memory.c"
-
-extern struct Slot memory[2048];
-extern int registers[32];
 
 int ALU() {
     reg* pc = getPC();
