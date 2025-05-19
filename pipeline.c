@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "registers.h"
-#include "memory.h"
+#include "Memory.h"
 #include "Parser.h"
 
 #define IF 0
@@ -18,8 +18,8 @@
 #define OPCODE_BNE 10
 #define OPCODE_J 11
 
-extern registerHome myRegisters;  // Assuming this is declared in registers.h
-extern int parseFile(const char* filename);  // Prevent implicit declaration
+extern registerHome myRegisters;  // Declared in registers.h
+extern int parseFile(const char* filename);  // Declaration to prevent implicit warning
 
 int flush_timer = 0;
 int clock_cycle = 1;
@@ -31,9 +31,11 @@ int sign_extend(int value, int bits) {
 }
 
 void fetch() {
-    if (flush_timer > 0 || clock_cycle % 2 == 0) return;
+    if (flush_timer > 0) return;  // Only skip fetch if flushing pipeline
     int pc = getPC()->data;
-    pipeline[IF].instruction = FetchIndex(pc);
+    int instr = FetchIndex(pc);
+    printf("[FETCH] PC=%d, Instr=0x%X\n", pc, instr);
+    pipeline[IF].instruction = instr;
     pipeline[IF].valid = 1;
     incrementPC();
 }
@@ -43,22 +45,23 @@ void decode() {
     int instr = pipeline[ID].instruction;
     int opcode = (instr >> 28) & 0xF;
     pipeline[ID].opcode = opcode;
-if (pipeline[EX].valid) {
-    int prevOpcode = pipeline[EX].opcode;
-    int prevDest = pipeline[EX].R1;
 
-    if (prevOpcode != OPCODE_BNE && prevOpcode != OPCODE_J && prevOpcode != OPCODE_SW) {
-        if (pipeline[ID].R1 == prevDest) {
-            printf("Forwarding: R1 = R%d using ALU result %d from EX stage\n", prevDest, pipeline[EX].result);
-            // simulate forward: optionally store into register or temporary variable
-            myRegisters.regHome[pipeline[ID].R1].data = pipeline[EX].result;
-        }
-        if (pipeline[ID].R2 == prevDest) {
-            printf("Forwarding: R2 = R%d using ALU result %d from EX stage\n", prevDest, pipeline[EX].result);
-            myRegisters.regHome[pipeline[ID].R2].data = pipeline[EX].result;
+    // Forwarding logic from EX stage
+    if (pipeline[EX].valid) {
+        int prevOpcode = pipeline[EX].opcode;
+        int prevDest = pipeline[EX].R1;
+
+        if (prevOpcode != OPCODE_BNE && prevOpcode != OPCODE_J && prevOpcode != OPCODE_SW) {
+            if (pipeline[ID].R1 == prevDest) {
+                printf("Forwarding: R1 = R%d using ALU result %d from EX stage\n", prevDest, pipeline[EX].result);
+                myRegisters.regHome[pipeline[ID].R1].data = pipeline[EX].result;
+            }
+            if (pipeline[ID].R2 == prevDest) {
+                printf("Forwarding: R2 = R%d using ALU result %d from EX stage\n", prevDest, pipeline[EX].result);
+                myRegisters.regHome[pipeline[ID].R2].data = pipeline[EX].result;
+            }
         }
     }
-}
 
     switch (opcode) {
         case OPCODE_ADD:
@@ -78,7 +81,6 @@ if (pipeline[EX].valid) {
             pipeline[ID].address = instr & 0x0FFFFFFF;
             break;
     }
-
 }
 
 void execute() {
@@ -107,6 +109,7 @@ void execute() {
                 pipeline[IF].valid = 0;
                 pipeline[ID].valid = 0;
                 flush_timer = 2;
+                printf("[EXECUTE] Branch taken: PC set to %d\n", new_pc);
             }
             break;
         }
@@ -115,6 +118,7 @@ void execute() {
             pipeline[IF].valid = 0;
             pipeline[ID].valid = 0;
             flush_timer = 2;
+            printf("[EXECUTE] Jump to address: %d\n", pipeline[EX].address);
             break;
     }
 }
@@ -125,10 +129,11 @@ void memory_access() {
     switch (pipeline[MEM].opcode) {
         case OPCODE_LW:
             pipeline[MEM].result = FetchIndex(addr);
+            printf("[MEMORY] Loaded MEM[%d] = %d\n", addr, pipeline[MEM].result);
             break;
         case OPCODE_SW:
             overwrite(pipeline[MEM].mem_data, addr);
-            printf("Memory Update: MEM[%d] = %d (stored in MEM stage)\n", addr, pipeline[MEM].mem_data);
+            printf("[MEMORY] Stored %d into MEM[%d]\n", pipeline[MEM].mem_data, addr);
             break;
     }
 }
@@ -138,7 +143,7 @@ void writeback() {
     int dest = pipeline[WB].R1;
     if ((pipeline[WB].opcode == OPCODE_ADD || pipeline[WB].opcode == OPCODE_ADDI || pipeline[WB].opcode == OPCODE_LW) && dest != 0) {
         overwriteData(&myRegisters.regHome[dest], pipeline[WB].result);
-        printf("Register Update: %s = %d (updated in WB stage)\n",
+        printf("[WRITEBACK] Register %s updated to %d\n",
                getType(&myRegisters.regHome[dest]), getData(&myRegisters.regHome[dest]));
     }
 }
@@ -154,7 +159,7 @@ void advance_pipeline() {
             int ex_dest = pipeline[EX].R1; // LW writes to R1
             if (ex_dest == id_r1 || ex_dest == id_r2) {
                 insertBubble = 1;
-                printf("STALL: Load-use hazard detected → inserting bubble\n");
+                printf("[STALL] Load-use hazard detected, inserting bubble\n");
             }
         }
     }
@@ -227,8 +232,13 @@ void simulate() {
     }
     print_final_state();
 }
+
 int main() {
-    parseFile("Program1.txt");
+    int parse_result = parseFile("Program1.txt");
+    if (parse_result != 0) {
+        printf("Error parsing file\n");
+        return 1;
+    }
     simulate();
     return 0;
 }

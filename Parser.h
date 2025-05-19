@@ -2,7 +2,7 @@
 #define PIPELINE_H
 
 #include <stdint.h>
-#include "memory.h"
+#include "Memory.h"
 
 // Pipeline stage indices
 #define IF  0
