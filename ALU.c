@@ -70,11 +70,12 @@ int ALU() {
             return REG_DATA(decoder.RD);
 
         case 10: // Load word
-            SET_REG_DATA(decoder.RD, getData(&memory[REG_DATA(decoder.RS) + decoder.IMM]));
+          SET_REG_DATA(decoder.RD, memory[REG_DATA(decoder.RS) + decoder.IMM].data);
             return REG_DATA(decoder.RD);
 
         case 11: // Store word
-            overwriteData(&memory[REG_DATA(decoder.RS) + decoder.IMM], REG_DATA(decoder.RD));
+           memory[REG_DATA(decoder.RS) + decoder.IMM].data = REG_DATA(decoder.RD);
+memory[REG_DATA(decoder.RS) + decoder.IMM].used = 1;
             return -1;
 
         default:

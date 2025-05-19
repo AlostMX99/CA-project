@@ -4,6 +4,7 @@
 #include "Decoder.h"
 
 
+
 void fetchInstruction(int opcode) {
     if (opcode == 0 || opcode == 1 || opcode == 8 || opcode == 9) {
         decoder.type = 0;  // R-type

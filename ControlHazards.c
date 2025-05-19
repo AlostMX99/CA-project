@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include "controlHazards.h"
 #include "Decoder.h"
-#include "registers.h"  
+#include "registers.h"
+
+// Use the global decoder or pass it if needed
+
+
 // Enum-like macros for clarity
 #define OPCODE_BNE 4
 #define OPCODE_J   7

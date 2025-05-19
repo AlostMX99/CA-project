@@ -235,11 +235,12 @@ void simulate() {
 }
 
 int main() {
-    int parse_result = parseFile("Program1.txt");
-    if (parse_result != 0) {
-        printf("Error parsing file\n");
-        return 1;
-    }
+  int result = parseFile("Program1.txt");
+if (result < 0) {
+    printf("Error parsing file\n");
+    return 1;
+}
+
 
     initRegisters();  // <-- Important! Initialize the registers before simulation
 

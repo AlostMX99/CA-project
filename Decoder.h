@@ -1,12 +1,12 @@
+
+
 #ifndef DECODER_H
 #define DECODER_H
-
 #include <stdint.h>
 
 typedef struct {
     int type, data, opcode, RS, RT, RD, IMM, SHAMT, address;
 } Decoder;
-
 // Global decoder instance (declare extern here, define in one .c file)
 extern Decoder decoder;
 

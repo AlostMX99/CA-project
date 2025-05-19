@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "Memory.h"
 
 
 static int instructionCount = 0;
@@ -28,13 +29,14 @@ int regToInt(char* reg) {
     return val;
 }
 
-int parseFile(const char* fileName)
- {
+int parseFile(const char* fileName) {
+
     FILE* file = fopen(fileName, "r");
     if (!file) {
-        printf("Failed to open file: %s\n", fileName);
+        perror("fopen failed");
         return -1;
     }
+
 
     char line[100];
     while (fgets(line, sizeof(line), file)) {
