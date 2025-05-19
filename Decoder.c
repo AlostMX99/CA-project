@@ -3,7 +3,6 @@
 
 #include "Decoder.h"
 
-extern struct Decoder decoder;
 
 void fetchInstruction(int opcode) {
     if (opcode == 0 || opcode == 1 || opcode == 8 || opcode == 9) {

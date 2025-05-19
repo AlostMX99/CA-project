@@ -4,7 +4,7 @@
 #include "ALU.h"
 #include "registers.h"
 #include "Memory.h"
-
+Decoder decoder;
 int ALU() {
     reg* pc = getPC();
     int result = 0;

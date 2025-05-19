@@ -2,11 +2,11 @@
 #define MEMORY_H
 
 // Structure for each memory slot
-struct{
+struct Slot {
     char type[20];
     int data;
     int used; // 1 if used, 0 otherwise
-}Slot;
+};
 
 // Global memory and index tracker
 extern struct Slot memory[2048];

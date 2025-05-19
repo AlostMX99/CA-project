@@ -4,8 +4,6 @@
 #include "registers.h"
 #include "Memory.h"
 #include "Parser.h"
-#include <string.h>  // for strcpy
-#include <stdlib.h>  // for atoi
 
 #define IF 0
 #define ID 1
@@ -33,7 +31,7 @@ int sign_extend(int value, int bits) {
     return (value ^ mask) - mask;
 }
 
-void fetch() {
+void fetchStage() {
     if (flush_timer > 0) return;  // Only skip fetch if flushing pipeline
     int pc = getPC()->data;
     int instr = FetchIndex(pc);
@@ -227,7 +225,7 @@ void simulate() {
         memory_access();
         execute();
         decode();
-        fetch();
+        fetchStage();
         print_pipeline_state();
         advance_pipeline();
         clock_cycle++;

@@ -4,15 +4,7 @@
 #include <stdint.h>
 
 typedef struct {
-    uint32_t data;
-    uint8_t opcode;
-    uint8_t type;
-    uint8_t RD;
-    uint8_t RS;
-    uint8_t RT;
-    uint8_t SHAMT;
-    int32_t IMM;       // signed immediate
-    uint32_t address;
+    int type, data, opcode, RS, RT, RD, IMM, SHAMT, address;
 } Decoder;
 
 // Global decoder instance (declare extern here, define in one .c file)

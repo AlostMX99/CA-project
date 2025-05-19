@@ -28,7 +28,8 @@ int regToInt(char* reg) {
     return val;
 }
 
-int parseFile(char* fileName) {
+int parseFile(const char* fileName)
+ {
     FILE* file = fopen(fileName, "r");
     if (!file) {
         printf("Failed to open file: %s\n", fileName);
