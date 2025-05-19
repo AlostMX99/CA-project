@@ -3,7 +3,8 @@
 #include "decoder.h"
 #include "ALU.h"
 #include "registers.h"
-#include "memory.c"
+#include "memory.h"
+
 
 int ALU() {
     reg* pc = getPC();

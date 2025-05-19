@@ -8,6 +8,7 @@
 extern struct Slot memory[2048];
 extern int registers[32];
 
+
 int ALU(void);
 
 #endif
