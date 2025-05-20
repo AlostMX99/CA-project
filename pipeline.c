@@ -4,7 +4,7 @@
 #include "registers.h"
 #include "Memory.h"
 #include "Parser.h"
-
+#include "Decoder.h"
 #define IF 0
 #define ID 1
 #define EX 2
@@ -41,8 +41,9 @@ void fetchStage() {
     incrementPC();
 }
 
-void decode() {
+void decodeStage() {
     if (!pipeline[ID].valid) return;
+    
     int instr = pipeline[ID].instruction;
     int opcode = (instr >> 28) & 0xF;
     pipeline[ID].opcode = opcode;
@@ -66,20 +67,20 @@ void decode() {
 
     switch (opcode) {
         case OPCODE_ADD:
-            pipeline[ID].R1 = (instr >> 23) & 0x1F;
-            pipeline[ID].R2 = (instr >> 18) & 0x1F;
-            pipeline[ID].R3 = (instr >> 13) & 0x1F;
+            pipeline[ID].R1 = decoder.RD;
+            pipeline[ID].R2 = decoder.RS;
+            pipeline[ID].R3 = decoder.RT;
             break;
         case OPCODE_ADDI:
         case OPCODE_LW:
         case OPCODE_SW:
         case OPCODE_BNE:
-            pipeline[ID].R1 = (instr >> 23) & 0x1F;
-            pipeline[ID].R2 = (instr >> 18) & 0x1F;
-            pipeline[ID].immediate = sign_extend(instr & 0x3FFFF, 18);
+            pipeline[ID].R1 = decoder.RD;
+            pipeline[ID].R2 = decoder.RS;
+            pipeline[ID].immediate = decoder.IMM;
             break;
         case OPCODE_J:
-            pipeline[ID].address = instr & 0x0FFFFFFF;
+            pipeline[ID].address = decoder.address;
             break;
     }
 }
